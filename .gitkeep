@@ -1,0 +1,100 @@
+import serial
+import pyttsx3
+import time
+print("   ")
+# -----------------------------
+# SERIAL PORT SETTINGS
+# -----------------------------
+PORT = 'COM7'      # Change if needed (COM4, COM5 etc)
+BAUD = 9600
+# -----------------------------
+# TTS ENGINE SETUP
+# -----------------------------
+engine = pyttsx3.init()
+engine.setProperty('rate',150)
+engine.setProperty('volume',1)
+
+# -----------------------------
+# GESTURE DEBOUNCE
+# -----------------------------
+lastGesture = None
+lastTime = 0
+delayTime = 2     # seconds
+
+
+# -----------------------------
+# SPEAK FUNCTION
+# -----------------------------
+def speak(text):
+    print("Speaking:",text)
+    engine.say(text)
+    engine.runAndWait()
+
+
+# -----------------------------
+# GESTURE DETECTION
+# -----------------------------
+def detectGesture(f1,f2,f3,f4):
+
+    # All straight
+    if f1<30 and f2<30 and f3<30 and f4<30:
+        return "Hello"
+
+    # All bent
+    elif f1>70 and f2>70 and f3>70 and f4>70:
+        return "Thank you"
+
+    # Only first straight
+    elif f1<30 and f2>70 and f3>70 and f4>70:
+        return "Yes"
+
+    # Only first bent
+    elif f1>70 and f2<30 and f3<30 and f4<30:
+        return "No"
+
+    # Random gesture
+    else:
+        return None
+
+
+# -----------------------------
+# SERIAL CONNECTION
+# -----------------------------
+ser = serial.Serial(PORT,BAUD)
+time.sleep(2)
+
+print("System Started")
+print("Listening to Arduino...\n")
+
+# -----------------------------
+# MAIN LOOP
+# -----------------------------
+while True:
+
+    if ser.in_waiting:
+
+        data = ser.readline().decode().strip()
+
+        parts = data.split()
+
+        if len(parts) == 4:
+
+            f1 = int(parts[0])
+            f2 = int(parts[1])
+            f3 = int(parts[2])
+            f4 = int(parts[3])
+
+            print(f1,f2,f3,f4)
+
+            gesture = detectGesture(f1,f2,f3,f4)
+
+            if gesture:
+
+                currentTime = time.time()
+
+                if gesture != lastGesture or currentTime-lastTime > delayTime:
+
+                    speak(gesture)
+
+                    lastGesture = gesture
+                    lastTime = currentTime

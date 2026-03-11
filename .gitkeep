@@ -1,7 +1,7 @@
 import serial
 import pyttsx3
 import time
-print("   ")
+
 # -----------------------------
 # SERIAL PORT SETTINGS
 # -----------------------------

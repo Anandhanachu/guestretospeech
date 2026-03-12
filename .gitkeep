@@ -3,32 +3,37 @@ import pyttsx3
 import time
 
 # -----------------------------
-# SERIAL PORT SETTINGS
+# SERIAL SETTINGS
 # -----------------------------
-PORT = 'COM7'      # Change if needed (COM4, COM5 etc)
+PORT = 'COM7'
 BAUD = 9600
-# -----------------------------
-# TTS ENGINE SETUP
-# -----------------------------
-engine = pyttsx3.init()
-engine.setProperty('rate',150)
-engine.setProperty('volume',1)
 
 # -----------------------------
-# GESTURE DEBOUNCE
+# GESTURE MEMORY
 # -----------------------------
 lastGesture = None
 lastTime = 0
-delayTime = 2     # seconds
+delayTime = 2
 
 
 # -----------------------------
 # SPEAK FUNCTION
 # -----------------------------
 def speak(text):
-    print("Speaking:",text)
+
+    print("Speaking:", text)
+
+    engine = pyttsx3.init()
+
+    voices = engine.getProperty('voices')
+    engine.setProperty('voice', voices[1].id)   # female voice
+
+    engine.setProperty('rate',150)
+    engine.setProperty('volume',3.0)
+
     engine.say(text)
     engine.runAndWait()
+    engine.stop()
 
 
 # -----------------------------
@@ -36,65 +41,65 @@ def speak(text):
 # -----------------------------
 def detectGesture(f1,f2,f3,f4):
 
-    # All straight
-    if f1<30 and f2<30 and f3<30 and f4<30:
+    if f1 < 400 and f2 < 400 and f3 < 400 and f4 > 50:
         return "Hello"
+    
+    elif f1 < 400 and f2 < 400 and f3 >50 and f4 < 400 :
+        return "Goodbye"
+    elif f1 < 400 and f2 > 80 and f3 <400 and f4 < 400 :
+        return "thank you"
+    elif f1 > 80 and f2 < 400 and f3 <400 and f4 < 400 :
+        return "I love you"
 
-    # All bent
-    elif f1>70 and f2>70 and f3>70 and f4>70:
-        return "Thank you"
-
-    # Only first straight
-    elif f1<30 and f2>70 and f3>70 and f4>70:
-        return "Yes"
-
-    # Only first bent
-    elif f1>70 and f2<30 and f3<30 and f4<30:
-        return "No"
-
-    # Random gesture
     else:
         return None
 
 
 # -----------------------------
-# SERIAL CONNECTION
+# CONNECT TO ARDUINO
 # -----------------------------
-ser = serial.Serial(PORT,BAUD)
+print("Connecting to Arduino...")
+
+ser = serial.Serial(PORT, BAUD)
 time.sleep(2)
 
 print("System Started")
-print("Listening to Arduino...\n")
+print("Listening...\n")
+
 
 # -----------------------------
 # MAIN LOOP
 # -----------------------------
 while True:
 
-    if ser.in_waiting:
+    if ser.in_waiting > 0:
 
-        data = ser.readline().decode().strip()
+        try:
 
-        parts = data.split()
+            data = ser.readline().decode().strip()
+            parts = data.split()
 
-        if len(parts) == 4:
+            if len(parts) == 4:
 
-            f1 = int(parts[0])
-            f2 = int(parts[1])
-            f3 = int(parts[2])
-            f4 = int(parts[3])
+                f1 = int(parts[0])
+                f2 = int(parts[1])
+                f3 = int(parts[2])
+                f4 = int(parts[3])
 
-            print(f1,f2,f3,f4)
+                print("Flex:", f1, f2, f3, f4)
 
-            gesture = detectGesture(f1,f2,f3,f4)
+                gesture = detectGesture(f1,f2,f3,f4)
 
-            if gesture:
+                if gesture:
 
-                currentTime = time.time()
+                    currentTime = time.time()
 
-                if gesture != lastGesture or currentTime-lastTime > delayTime:
+                    if gesture != lastGesture or currentTime-lastTime > delayTime:
 
-                    speak(gesture)
+                        speak(gesture)
 
-                    lastGesture = gesture
-                    lastTime = currentTime
+                        lastGesture = gesture
+                        lastTime = currentTime
+
+        except:
+            pass

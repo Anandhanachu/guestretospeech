@@ -41,15 +41,16 @@ def speak(text):
 # -----------------------------
 def detectGesture(f1,f2,f3,f4):
 
-    if f1 < 400 and f2 < 400 and f3 < 400 and f4 > 50:
+    if f1 < 100 and f2 < 100 and f3 < 100 and f4 > 50:
         return "Hello"
-    
-    elif f1 < 400 and f2 < 400 and f3 >50 and f4 < 400 :
+    elif f1 < 100 and f2 < 100 and f3 >50 and f4 < 100 :
         return "Goodbye"
-    elif f1 < 400 and f2 > 80 and f3 <400 and f4 < 400 :
+    elif f1 < 100 and f2 > 50 and f3 <100 and f4 < 100 :
         return "thank you"
-    elif f1 > 80 and f2 < 400 and f3 <400 and f4 < 400 :
-        return "I love you"
+    elif f1 > 50 and f2 < 100 and f3 <100 and f4 < 100 :
+        return "Help"
+    elif f1 > 50 and f2 < 100 and f3 <100 and f4 > 50 :
+        return "I need water"
 
     else:
         return None
